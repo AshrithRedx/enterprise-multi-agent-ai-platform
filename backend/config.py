@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     vector_index_path: Path = Path("backend/rag/data/chunks.faiss")
     search_result_limit: int = 5
     gemini_api_key: str | None = None
-
+    gemini_model: str = "gemini-2.5-flash"
 
     model_config = SettingsConfigDict(
         env_file=".env",
