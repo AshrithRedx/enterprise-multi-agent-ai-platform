@@ -1,13 +1,14 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+
+# Database
+*.db
 
 # Virtual environments
-venv/
 .venv/
-
-# Databases
-*.db
+venv/
+env/
 
 # Uploads
 uploads/
@@ -16,6 +17,3 @@ backend/uploads/
 # IDE
 .vscode/
 .idea/
-
-# Logs
-*.log
