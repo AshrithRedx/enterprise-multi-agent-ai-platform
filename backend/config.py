@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     vector_index_path: Path = Path("backend/rag/data/chunks.faiss")
     search_result_limit: int = 5
+    gemini_api_key: str | None = None
+
 
     model_config = SettingsConfigDict(
         env_file=".env",
