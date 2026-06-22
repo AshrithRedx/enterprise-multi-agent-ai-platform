@@ -7,6 +7,7 @@ from backend.config import settings
 from backend.database import get_db
 from backend.models.upload import UploadResponse
 from backend.rag.ingestion import DocumentIngestionService, IngestionError
+from backend.rag.vector_store import vector_store
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ ingestion_service = DocumentIngestionService(
     upload_directory=settings.upload_directory,
     chunk_size=settings.chunk_size,
     chunk_overlap=settings.chunk_overlap,
+    vector_store=vector_store,
 )
 
 
@@ -65,4 +67,3 @@ async def upload_document(
         document_id=result.document_id,
         chunk_count=result.chunk_count,
     )
-

@@ -7,6 +7,7 @@ import io
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from docx import Document as DocxDocument
@@ -14,6 +15,9 @@ from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
 from backend.models.document import Document, DocumentChunk
+
+if TYPE_CHECKING:
+    from backend.rag.vector_store import FaissVectorStore
 
 SUPPORTED_FORMATS = frozenset({"pdf", "docx", "txt", "csv"})
 
@@ -50,6 +54,7 @@ class DocumentIngestionService:
         upload_directory: Path,
         chunk_size: int = 1_000,
         chunk_overlap: int = 150,
+        vector_store: FaissVectorStore | None = None,
     ) -> None:
         if chunk_size <= 0:
             raise ValueError("chunk_size must be greater than zero")
@@ -59,6 +64,7 @@ class DocumentIngestionService:
         self.upload_directory = upload_directory
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.vector_store = vector_store
 
     def ingest(
         self,
@@ -85,6 +91,7 @@ class DocumentIngestionService:
         stored_filename = f"{document_id}.{extension}"
         self.upload_directory.mkdir(parents=True, exist_ok=True)
         file_path = self.upload_directory / stored_filename
+        indexed_chunk_ids: list[int] = []
 
         try:
             file_path.write_bytes(content)
@@ -107,9 +114,20 @@ class DocumentIngestionService:
                 for index, chunk in enumerate(chunks)
             ]
             session.add(document)
+            session.flush()
+
+            if self.vector_store is not None:
+                indexed_chunk_ids = [chunk.id for chunk in document.chunks]
+                self.vector_store.add(
+                    chunk_ids=indexed_chunk_ids,
+                    texts=[chunk.text for chunk in document.chunks],
+                )
+
             session.commit()
         except Exception:
             session.rollback()
+            if self.vector_store is not None and indexed_chunk_ids:
+                self.vector_store.remove(indexed_chunk_ids)
             file_path.unlink(missing_ok=True)
             raise
 
@@ -202,4 +220,3 @@ class DocumentIngestionService:
             except UnicodeDecodeError:
                 continue
         raise DocumentExtractionError("Text file encoding must be UTF-8 or UTF-16")
-

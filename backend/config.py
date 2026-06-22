@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     max_upload_size_bytes: int = 25 * 1024 * 1024
     chunk_size: int = 1_000
     chunk_overlap: int = 150
+    embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    vector_index_path: Path = Path("backend/rag/data/chunks.faiss")
+    search_result_limit: int = 5
 
     model_config = SettingsConfigDict(
         env_file=".env",

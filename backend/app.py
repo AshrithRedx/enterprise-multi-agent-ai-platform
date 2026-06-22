@@ -7,13 +7,17 @@ from fastapi import FastAPI
 
 from backend.api.router import api_router, root_router
 from backend.config import settings
-from backend.database import init_database
+from backend.database import SessionLocal, init_database
+from backend.rag.vector_store import vector_store
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     """Initialize and release application resources."""
     init_database()
+    vector_store.load()
+    with SessionLocal() as session:
+        vector_store.synchronize(session)
     yield
 
 
