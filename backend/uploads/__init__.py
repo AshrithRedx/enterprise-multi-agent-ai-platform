@@ -1,2 +1,0 @@
-"""Uploaded asset management."""
-
